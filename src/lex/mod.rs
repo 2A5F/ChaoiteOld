@@ -1,5 +1,4 @@
 use std::rc::Rc;
-use std::ptr;
 use regex::Regex;
 
 mod token;
@@ -21,6 +20,7 @@ pub fn lex_str<'a>(code: &'a str) -> RcTokenIter<'a>
     lex(Rc::new(code.chars()))
 }
 
+#[allow(dead_code)]
 pub fn lex_string<'a>(code: &'a mut String) -> RcTokenIter<'a>
 {
     lex(Rc::new(code.drain(..)))

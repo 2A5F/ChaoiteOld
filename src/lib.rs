@@ -6,6 +6,7 @@ mod lex;
 
 pub fn x(){
     let code = "void add(int a, int b)\n{\n    return a + b;\n}";
+    #[allow(unused_variables)]
     let out = lex::lex_str(code);
     //let out = lex(Box::new(""));
 }
