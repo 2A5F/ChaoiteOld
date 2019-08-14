@@ -3,12 +3,30 @@
 open MeowType.Chaoite.Ast
 open MeowType.Chaoite.Parser
 
+open Antlr4.Runtime
 open Antlr4.Runtime.Tree
 
 exception UnknownTypeException of obj
 
+let check_id (id: C3Parser.IdContext) : Id = 
+    let text = id.Id().GetText()
+    {raw = id; name = text}
+
+let check_type (typ: C3Parser.TypeContext) = 
+    ()
+
 let check_var_define (var: C3Parser.VarDefineContext) = 
-    let x = var.varTag()
+    let tag = 
+        match var.varTag() with
+        | null -> VarTag.Auto
+        | t -> 
+            if t.New() <> null then VarTag.New
+            elif t.Stackalloc() <> null then VarTag.Stackalloc
+            elif t.Auto() <> null then VarTag.Auto
+            else raise <| UnknownTypeException t
+    let ``type`` = check_type <| var.``type``()
+    let name = check_id <| var.id()
+    
     ()
 
 let check_define (d: C3Parser.DefinesContext) =
