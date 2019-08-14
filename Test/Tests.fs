@@ -12,5 +12,7 @@ let Base () =
     let parser = Parser(code)
     let tree = parser.getTree ()
     let ast = standardized_ast tree
-    for i in ast do ()
+    for i in ast do 
+        let v = i
+        Console.WriteLine v
     ()

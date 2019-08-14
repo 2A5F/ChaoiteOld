@@ -163,4 +163,4 @@ let check_code (c: IParseTree) =
     | _ -> raise <| UnknownTypeException c
 
 let standardized_ast (root: C3Parser.RootContext) = 
-    root.children |> Seq.map check_code
+    root.children |> Seq.collect check_code
