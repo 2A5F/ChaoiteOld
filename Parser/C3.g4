@@ -211,20 +211,20 @@ literals:
 	| literBool
 	| type;
 
-literInt: LiterInt LiterIntSuffix?;
+literInt: LiterInt literIntSuffix?;
 LiterInt: (Plus | Minus)? Digit (Digit | Underline)*;
-LiterIntSuffix: IntSuffix | I8 | I16 | I32 | I64 | I128;
+literIntSuffix: IntSuffix | I8 | I16 | I32 | I64 | I128;
 
-literUInt: LiterUInt LiterUIntSuffix?;
+literUInt: LiterUInt literUIntSuffix?;
 LiterUInt: Plus? Digit (Digit | Underline)*;
-LiterUIntSuffix: UIntSuffix | U8 | U16 | U32 | U64 | U128;
+literUIntSuffix: UIntSuffix | U8 | U16 | U32 | U64 | U128;
 
-literFloat: LiterFloat LiterFloatSuffix?;
+literFloat: LiterFloat literFloatSuffix?;
 LiterFloat: (Plus | Minus)? (
 		(Digit (Digit | Underline)* ( Dot (Digit | Underline)*)?)
 		| ( Dot (Digit | Underline)*)
 	);
-LiterFloatSuffix: FloatSuffix | F32 | F64 | F128;
+literFloatSuffix: FloatSuffix | F32 | F64 | F128;
 
 literBool: True | False;
 True: 'true';
@@ -236,12 +236,13 @@ type:
 	Inline type ArrowR2L functionParamDefine typeSuffix?
 	| type ArrowR2L functionParamDefine typeSuffix?
 	| id typeSuffix?
-	| BaseTypes typeSuffix?;
+	| baseTypes typeSuffix?;
 typeSuffix: Exclamation | Question | Star;
-BaseTypes:
+baseTypes:
 	Any
 	| Void
 	| Null
+	| Never
 	| Var
 	| Bool
 	| Num
@@ -267,6 +268,7 @@ BaseTypes:
 Any: 'any';
 Void: 'void';
 Null: 'null';
+Never: 'null';
 Var: 'var';
 Bool: 'bool';
 Num: 'num';
