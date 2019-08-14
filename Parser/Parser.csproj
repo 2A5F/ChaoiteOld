@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>Meowtype.Chaoite.Parser</RootNamespace>
-    <AssemblyName>Chaoite.Parser</AssemblyName>
+    <RootNamespace>MeowType.Chaoite.Parser</RootNamespace>
+    <AssemblyName>c3c.parser</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +16,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Antlr4.Runtime" Version="4.6.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Antlr4 Update="C3.g4">
+      <CustomToolNamespace>MeowType.Chaoite.Parser</CustomToolNamespace>
+    </Antlr4>
   </ItemGroup>
 
 </Project>

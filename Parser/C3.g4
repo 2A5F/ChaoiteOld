@@ -1,17 +1,21 @@
 grammar C3;
 
+@header  {#pragma warning disable 3021}
+
 root: code*;
 
 code: defines | statements | expr;
 
 defines: structDefine | functionDefine | varDefine;
 
-varDefine: (New | Stackalloc | Auto)? type id (Eq expr)? (
+varDefine: varTag? type id (Eq expr)? (
 		Comma varDefines
 	)?;
-varDefines: (New | Stackalloc | Auto)? type? id (Eq expr)? (
+varDefines: varTag? type? id (Eq expr)? (
 		Comma varDefines
 	)?;
+
+varTag: New | Stackalloc | Auto;
 
 functionDefine:
 	Inline? type id functionParamDefine Async? Star? (
