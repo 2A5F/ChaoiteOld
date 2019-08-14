@@ -1,8 +1,10 @@
 grammar C3;
 
-root: defines;
+root: code*;
 
-defines: varDefine | functionDefine | structDefine;
+code: defines | statements | expr;
+
+defines: structDefine | functionDefine | varDefine;
 
 varDefine: (New | Stackalloc | Auto)? type id (Eq expr)? (
 		Comma varDefines
@@ -12,19 +14,18 @@ varDefines: (New | Stackalloc | Auto)? type? id (Eq expr)? (
 	)?;
 
 functionDefine:
-	Inline? type id functionParamDefine (
-		Iter? Async?
-		| Async? Iter?
-	) (expr | Eq expr | functionBody);
+	Inline? type id functionParamDefine Async? Star? (
+		functionBody
+		| Eq expr
+		| expr
+	);
 functionParamDefine:
 	Parentheses_Open functionParams? Parentheses_Close;
 functionParams: functionParam (Comma functionParams?)*;
 functionParam: type? id | functionTypeOnParam;
 
-functionBody:
-	CurlyBraces_Open (expr | statements | defines)* CurlyBraces_Close;
-lambda:
-	Inline? functionParamDefine? (Iter? Async? | Async? Iter?) functionBody;
+functionBody: CurlyBraces_Open code* CurlyBraces_Close;
+lambda: Inline? functionParamDefine? Async? Star? functionBody;
 
 callParams: Parentheses_Open callParam? Parentheses_Close;
 callParam: expr (Comma expr?)*;
@@ -71,32 +72,45 @@ setLShifth: expr EqLShift expr;
 setRShifth: expr EqRShift expr;
 setURShifth: expr EqURShift expr;
 
+label: id Colon;
+useLabel: Colon id;
+
+codeBlock: (label | Colon) CurlyBraces_Open code* CurlyBraces_Close;
+
 statements:
 	forInLoop
 	| whileLoop
 	| doWhileLoop
-	| yield
+	| toYield
 	| toReturn
+	| toBreak
+	| toContinue
+	| label
 	| setVars;
 
-yield: Yield Star? expr;
+toContinue: Continue useLabel?;
+toBreak: Break useLabel? expr?;
+
+toYield: Yield Star? useLabel? expr;
 
 toReturn: Return expr?;
 
 forInLoop:
-	For Await? Parentheses_Open id (Comma id)? In expr Parentheses_Close functionBody;
+	label? For Await? Parentheses_Open id (Comma id)? In expr Parentheses_Close functionBody;
 
-iterForExpr: Iter forInLoop;
+iterForExpr:
+	label? For Async? Star Await? Parentheses_Open id (Comma id)? In expr Parentheses_Close
+		functionBody;
 
 whileLoop:
-	While Parentheses_Open expr Parentheses_Close functionBody;
+	label? While Parentheses_Open expr Parentheses_Close functionBody;
 doWhileLoop:
-	Do functionBody While Parentheses_Open expr Parentheses_Close;
+	label? Do functionBody While Parentheses_Open expr Parentheses_Close;
 
 iterWhileLoop:
-	Iter While Parentheses_Open expr Parentheses_Close functionBody;
+	label? While Async? Star Parentheses_Open expr Parentheses_Close functionBody;
 iterDoWhileLoop:
-	Iter Do functionBody While Parentheses_Open expr Parentheses_Close;
+	label? Do Async? Star functionBody While Parentheses_Open expr Parentheses_Close;
 
 ifExpr:
 	If Parentheses_Open expr Parentheses_Close functionBody elifExpr* elseExpr?;
@@ -106,7 +120,7 @@ elseExpr: Else functionBody;
 
 await: Await expr;
 
-block: Do ( Iter? Async? | Async? Iter?) functionBody;
+block: label? Do Async? Star? functionBody;
 
 null_expr: or_expr (QuestionQuestion null_expr)?;
 
@@ -147,23 +161,36 @@ unary_expr:
 
 primary_unary_expr: call_expr (PlusPlus | MinusMinus)?;
 
-call_expr: primary_expr (callParam | At functionBody)*;
+call_expr:
+	primary_expr (
+		callParams (At functionBody)?
+		| At functionBody
+	)*;
+
+priority_expr: Parentheses_Open expr Parentheses_Close;
+
+typeof: Typeof primary_expr;
+sizeof: Sizeof primary_expr;
+nameof: Nameof primary_expr;
 
 primary_expr:
-	ifExpr
+	id
+	| ifExpr
 	| iterForExpr
 	| literals
 	| await
 	| iterWhileLoop
 	| doWhileLoop
 	| block
-	| Parentheses_Open expr Parentheses_Close
-	| primary_expr Question? Dot id
-	| Typeof primary_expr
-	| Sizeof primary_expr
-	| Nameof primary_expr;
+	| priority_expr
+	| typeof
+	| sizeof
+	| nameof
+	| codeBlock;
 
-expr: null_expr;
+chain_expr: null_expr (Question? Dot id)?;
+
+expr: chain_expr;
 
 id: Id;
 
@@ -286,6 +313,7 @@ Comma: ',';
 ArrowR2L: '<-';
 Slash: '/';
 Semicolon: ';' -> skip;
+Colon: ':';
 PlusPlus: '++';
 MinusMinus: '--';
 EqEq: '==';
@@ -334,7 +362,6 @@ For: 'for';
 Elif: 'elif';
 In: 'in';
 While: 'while';
-Iter: 'iter';
 Yield: 'yield';
 Async: 'async';
 Await: 'await';
