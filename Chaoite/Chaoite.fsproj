@@ -13,7 +13,7 @@
   <ItemGroup>
     <Compile Include="Ast\Ast.fs" />
     <Compile Include="Parser.fs" />
-    <Compile Include="Chaoite.fs" />
+    <Compile Include="Standardization.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
