@@ -57,56 +57,59 @@ let check_type (typ: C3Parser.TypeContext) : AstType =
 
 let check_literals (liter: C3Parser.LiteralsContext) : AstLiteral = 
     if liter.ChildCount <> 1 then raise <| UnknownTypeException liter
-    match liter.children.[0] with
-    | :? C3Parser.LiterIntContext as liter_int -> 
-        let value = liter_int.LiterInt().GetText()
-        let len = 
-            match liter_int.literIntSuffix() with 
-            | null -> NumSuffix.SuffixNone 
-            | suffix -> 
-                if suffix.ChildCount <> 1 then raise <| UnknownTypeException suffix
-                if suffix.IntSuffix() <> null then NumSuffix.SuffixHas
-                elif suffix.I8() <> null then NumSuffix.SuffixSome 8
-                elif suffix.I16() <> null then NumSuffix.SuffixSome 16
-                elif suffix.I32() <> null then NumSuffix.SuffixSome 32
-                elif suffix.I64() <> null then NumSuffix.SuffixSome 64
-                elif suffix.I128() <> null then NumSuffix.SuffixSome 128
-                else raise <| UnknownTypeException suffix
-        upcast ({raw = liter_int; Type = NumType.Int; value = value; len = len}: NumLiteral)
-    | :? C3Parser.LiterUIntContext as liter_uint -> 
-        let value = liter_uint.LiterUInt().GetText()
-        let len = 
-            match liter_uint.literUIntSuffix() with 
-            | null -> NumSuffix.SuffixNone 
-            | suffix -> 
-                if suffix.ChildCount <> 1 then raise <| UnknownTypeException suffix
-                if suffix.UIntSuffix() <> null then NumSuffix.SuffixHas
-                elif suffix.U8() <> null then NumSuffix.SuffixSome 8
-                elif suffix.U16() <> null then NumSuffix.SuffixSome 16
-                elif suffix.U32() <> null then NumSuffix.SuffixSome 32
-                elif suffix.U64() <> null then NumSuffix.SuffixSome 64
-                elif suffix.U128() <> null then NumSuffix.SuffixSome 128
-                else raise <| UnknownTypeException suffix
-        upcast ({raw = liter_uint; Type = NumType.UInt; value = value; len = len}: NumLiteral)
-    | :? C3Parser.LiterFloatContext as liter_float -> 
-        let value = liter_float.LiterFloat().GetText()
-        let len = 
-            match liter_float.literFloatSuffix() with 
-            | null -> NumSuffix.SuffixNone 
-            | suffix -> 
-                if suffix.ChildCount <> 1 then raise <| UnknownTypeException suffix
-                if suffix.FloatSuffix() <> null then NumSuffix.SuffixHas
-                elif suffix.F32() <> null then NumSuffix.SuffixSome 32
-                elif suffix.F64() <> null then NumSuffix.SuffixSome 64
-                elif suffix.F128() <> null then NumSuffix.SuffixSome 128
-                else raise <| UnknownTypeException suffix
-        upcast ({raw = liter_float; Type = NumType.Float; value = value; len = len}: NumLiteral)
-    | :? C3Parser.LiterBoolContext as liter_bool ->
-        if liter_bool.True() <> null then upcast ({raw = liter_bool; value = true}: BoolLiteral)
-        elif liter_bool.False() <> null then upcast ({raw = liter_bool; value = false}: BoolLiteral)
-        else raise <| UnknownTypeException liter_bool
-    // todo other
-    | unknow -> raise <| UnknownTypeException unknow // todo other
+    if liter.This() <> null then upcast ({raw = liter} : ThisLiteral)
+    elif liter.It() <> null then upcast ({raw = liter} : ItLiteral)
+    elif liter.NaN() <> null then upcast ({raw = liter} : NaNLiteral)
+    else 
+        match liter.children.[0] with
+        | :? C3Parser.LiterIntContext as liter_int -> 
+            let value = liter_int.LiterInt().GetText()
+            let len = 
+                match liter_int.literIntSuffix() with 
+                | null -> NumSuffix.SuffixNone 
+                | suffix -> 
+                    if suffix.ChildCount <> 1 then raise <| UnknownTypeException suffix
+                    if suffix.IntSuffix() <> null then NumSuffix.SuffixHas
+                    elif suffix.I8() <> null then NumSuffix.SuffixSome 8
+                    elif suffix.I16() <> null then NumSuffix.SuffixSome 16
+                    elif suffix.I32() <> null then NumSuffix.SuffixSome 32
+                    elif suffix.I64() <> null then NumSuffix.SuffixSome 64
+                    elif suffix.I128() <> null then NumSuffix.SuffixSome 128
+                    else raise <| UnknownTypeException suffix
+            upcast ({raw = liter_int; Type = NumType.Int; value = value; len = len}: NumLiteral)
+        | :? C3Parser.LiterUIntContext as liter_uint -> 
+            let value = liter_uint.LiterUInt().GetText()
+            let len = 
+                match liter_uint.literUIntSuffix() with 
+                | null -> NumSuffix.SuffixNone 
+                | suffix -> 
+                    if suffix.ChildCount <> 1 then raise <| UnknownTypeException suffix
+                    if suffix.UIntSuffix() <> null then NumSuffix.SuffixHas
+                    elif suffix.U8() <> null then NumSuffix.SuffixSome 8
+                    elif suffix.U16() <> null then NumSuffix.SuffixSome 16
+                    elif suffix.U32() <> null then NumSuffix.SuffixSome 32
+                    elif suffix.U64() <> null then NumSuffix.SuffixSome 64
+                    elif suffix.U128() <> null then NumSuffix.SuffixSome 128
+                    else raise <| UnknownTypeException suffix
+            upcast ({raw = liter_uint; Type = NumType.UInt; value = value; len = len}: NumLiteral)
+        | :? C3Parser.LiterFloatContext as liter_float -> 
+            let value = liter_float.LiterFloat().GetText()
+            let len = 
+                match liter_float.literFloatSuffix() with 
+                | null -> NumSuffix.SuffixNone 
+                | suffix -> 
+                    if suffix.ChildCount <> 1 then raise <| UnknownTypeException suffix
+                    if suffix.FloatSuffix() <> null then NumSuffix.SuffixHas
+                    elif suffix.F32() <> null then NumSuffix.SuffixSome 32
+                    elif suffix.F64() <> null then NumSuffix.SuffixSome 64
+                    elif suffix.F128() <> null then NumSuffix.SuffixSome 128
+                    else raise <| UnknownTypeException suffix
+            upcast ({raw = liter_float; Type = NumType.Float; value = value; len = len}: NumLiteral)
+        | :? C3Parser.LiterBoolContext as liter_bool ->
+            if liter_bool.True() <> null then upcast ({raw = liter_bool; value = true}: BoolLiteral)
+            elif liter_bool.False() <> null then upcast ({raw = liter_bool; value = false}: BoolLiteral)
+            else raise <| UnknownTypeException liter_bool
+        | unknow -> raise <| UnknownTypeException unknow // todo other
 
 let check_primary_expr (expr: C3Parser.Primary_exprContext) = 
     if expr.ChildCount <> 1 then raise <| UnknownTypeException expr

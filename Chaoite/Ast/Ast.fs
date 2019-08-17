@@ -24,6 +24,9 @@ and RawVarDefine =      {raw: RawAst; Type: AstType option; name: Id;
 and VarDefine =         {raw: RawAst; Type: AstType; name: Id; value: AstExpr option; tag: VarTag}          interface AstDefine     with member this.raw = this.raw end
 and NumLiteral =        {raw: RawAst; Type: NumType; value: string; len: NumSuffix}                         interface AstLiteral    with member this.raw = this.raw end
 and BoolLiteral =       {raw: RawAst; value: bool}                                                          interface AstLiteral    with member this.raw = this.raw end
+and ThisLiteral =       {raw: RawAst;}                                                                      interface AstLiteral    with member this.raw = this.raw end
+and ItLiteral =       {raw: RawAst;}                                                                        interface AstLiteral    with member this.raw = this.raw end
+and NaNLiteral =       {raw: RawAst;}                                                                       interface AstLiteral    with member this.raw = this.raw end
 and CType =             {raw: RawAst; name: string; suffix: TypeSuffix option}                              interface AstType       with member this.raw = this.raw end
 and CTypeVar =          {raw: RawAst; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
 and CTypeAny =          {raw: RawAst; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end

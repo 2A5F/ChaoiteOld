@@ -181,7 +181,11 @@ primary_expr:
 	id
 	| ifExpr
 	| iterForExpr
+	| lambda
+	| functionDefine
+	| structDefine
 	| literals
+	| type
 	| await
 	| iterWhileLoop
 	| doWhileLoop
@@ -199,17 +203,13 @@ expr: chain_expr;
 id: Id;
 
 literals:
-	lambda
-	| This
+	This
 	| It
-	| Null
-	| Void
 	| NaN
 	| literInt
 	| literUInt
 	| literFloat
-	| literBool
-	| type;
+	| literBool;
 
 literInt: LiterInt literIntSuffix?;
 LiterInt: (Plus | Minus)? Digit (Digit | Underline)*;
@@ -268,7 +268,7 @@ baseTypes:
 Any: 'any';
 Void: 'void';
 Null: 'null';
-Never: 'null';
+Never: 'never';
 Var: 'var';
 Bool: 'bool';
 Num: 'num';
