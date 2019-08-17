@@ -3,7 +3,9 @@
 open Antlr4.Runtime
 open Antlr4.Runtime.Tree
 
-type Ast = interface abstract member raw: IParseTree end
+type RawAst = IParseTree
+
+type Ast = interface abstract member raw: RawAst end
 type AstDefine = interface inherit Ast end
 type AstExpr = interface inherit Ast end
 type AstType = interface inherit AstExpr end
@@ -15,23 +17,25 @@ type VarTag = New | Stackalloc | Auto
 type TypeSuffix = Const | Nullable | Pointer
 type NumSuffix = SuffixHas | SuffixSome of int | SuffixNone
 
-type Root =             {raw: IParseTree; child: Ast seq}                                                       interface Ast           with member this.raw = this.raw end
-and Id =                {raw: IParseTree; name: string}                                                         interface Ast           with member this.raw = this.raw end
-and VarDefine =         {raw: IParseTree; Type: AstType; name: Id; value: AstExpr option; tag: VarTag}          interface AstDefine     with member this.raw = this.raw end
-and NumLiteral =        {raw: IParseTree; Type: NumType; value: string; len: NumSuffix}                        interface AstLiteral    with member this.raw = this.raw end
-and BoolLiteral =       {raw: IParseTree; value: bool}                                                          interface AstLiteral    with member this.raw = this.raw end
-and CType =             {raw: IParseTree; name: string; suffix: TypeSuffix option}                              interface AstType       with member this.raw = this.raw end
-and CTypeVar =          {raw: IParseTree; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
-and CTypeAny =          {raw: IParseTree; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
-and CTypeVoid =         {raw: IParseTree; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
-and CTypeNull =         {raw: IParseTree; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
-and CTypeBool =         {raw: IParseTree; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
-and CTypeNum =          {raw: IParseTree; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
-and CTypeChar =         {raw: IParseTree; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
-and CTypeString =       {raw: IParseTree; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
-and CTypeInt =          {raw: IParseTree; suffix: TypeSuffix option; len: int option}                           interface AstType       with member this.raw = this.raw end
-and CTypeUInt =         {raw: IParseTree; suffix: TypeSuffix option; len: int option}                           interface AstType       with member this.raw = this.raw end
-and CTypeFloat =        {raw: IParseTree; suffix: TypeSuffix option; len: int option}                           interface AstType       with member this.raw = this.raw end
+type Root =             {raw: RawAst; child: Ast seq}                                                       interface Ast           with member this.raw = this.raw end
+and Id =                {raw: RawAst; name: string}                                                         interface Ast           with member this.raw = this.raw end
+and RawVarDefine =      {raw: RawAst; Type: AstType option; name: Id; 
+                            value: AstExpr option; tag: VarTag; Then: RawVarDefine option}                  interface AstDefine     with member this.raw = this.raw end
+and VarDefine =         {raw: RawAst; Type: AstType; name: Id; value: AstExpr option; tag: VarTag}          interface AstDefine     with member this.raw = this.raw end
+and NumLiteral =        {raw: RawAst; Type: NumType; value: string; len: NumSuffix}                         interface AstLiteral    with member this.raw = this.raw end
+and BoolLiteral =       {raw: RawAst; value: bool}                                                          interface AstLiteral    with member this.raw = this.raw end
+and CType =             {raw: RawAst; name: string; suffix: TypeSuffix option}                              interface AstType       with member this.raw = this.raw end
+and CTypeVar =          {raw: RawAst; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
+and CTypeAny =          {raw: RawAst; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
+and CTypeVoid =         {raw: RawAst; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
+and CTypeNull =         {raw: RawAst; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
+and CTypeBool =         {raw: RawAst; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
+and CTypeNum =          {raw: RawAst; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
+and CTypeChar =         {raw: RawAst; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
+and CTypeString =       {raw: RawAst; suffix: TypeSuffix option}                                            interface AstType       with member this.raw = this.raw end
+and CTypeInt =          {raw: RawAst; suffix: TypeSuffix option; len: int option}                           interface AstType       with member this.raw = this.raw end
+and CTypeUInt =         {raw: RawAst; suffix: TypeSuffix option; len: int option}                           interface AstType       with member this.raw = this.raw end
+and CTypeFloat =        {raw: RawAst; suffix: TypeSuffix option; len: int option}                           interface AstType       with member this.raw = this.raw end
 
 
 

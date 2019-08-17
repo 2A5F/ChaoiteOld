@@ -1,4 +1,4 @@
-﻿module MeowType.Chaoite.Chaoite
+﻿module MeowType.Chaoite.Standardization
 
 open MeowType.Chaoite.Ast
 open MeowType.Chaoite.Parser
@@ -131,36 +131,52 @@ let rec find_expr (expr: IParseTree) : IParseTree =
         | _ -> expr
     | _ -> expr
 
-let check_var_define (var: C3Parser.VarDefineContext) : VarDefine seq = 
-    let tag = 
-        match var.varTag() with
-        | null -> VarTag.Auto
-        | t -> 
-            if t.New() <> null then VarTag.New
-            elif t.Stackalloc() <> null then VarTag.Stackalloc
-            elif t.Auto() <> null then VarTag.Auto
-            else raise <| UnknownTypeException t
+let check_var_tag (tag: C3Parser.VarTagContext) : VarTag =
+    match tag with
+    | null -> VarTag.Auto
+    | t -> 
+        if t.New() <> null then VarTag.New
+        elif t.Stackalloc() <> null then VarTag.Stackalloc
+        elif t.Auto() <> null then VarTag.Auto
+        else raise <| UnknownTypeException t
+
+let rec check_var_defines (var: C3Parser.VarDefinesContext) parent : RawVarDefine = 
+    match var with
+    | null -> parent None
+    | _ -> 
+        let tag = check_var_tag <| var.varTag()
+        let ``type`` = match var.``type``() with null -> None | t -> check_type t |> Some
+        let name = check_id <| var.id()
+        let expr = match var.expr() with null -> None | expr -> find_expr expr |> check_expr |> Some
+        let fn more = 
+            ({raw = var; Type = ``type``; name = name; value = expr; tag = tag; Then = more} : RawVarDefine)
+            |> Some |> parent
+        check_var_defines (var.varDefines()) fn
+
+let check_var_define (var: C3Parser.VarDefineContext) : RawVarDefine = 
+    let tag = check_var_tag <| var.varTag()
     let ``type`` = check_type <| var.``type``()
     let name = check_id <| var.id()
-
     let expr = match var.expr() with null -> None | expr -> find_expr expr |> check_expr |> Some
+    let fn more = {raw = var; Type = Some ``type``; name = name; value = expr; tag = tag; Then = more} : RawVarDefine
+    check_var_defines (var.varDefines()) fn
 
-    upcast [{raw = var; Type = ``type``; name = name; value = expr; tag = tag}]
-
-let check_define (d: C3Parser.DefinesContext) : AstDefine seq =
+let check_define (d: C3Parser.DefinesContext) : AstDefine =
     if d.ChildCount <> 1 then raise <| UnknownTypeException d
     match d.children.[0] with
-    | :? C3Parser.VarDefineContext as var -> Seq.cast <| check_var_define var
+    | :? C3Parser.VarDefineContext as var -> upcast check_var_define var
+    // todo
     | unknow -> raise <| UnknownTypeException unknow
     
-let check_code (c: IParseTree) = 
+let check_code (c: IParseTree) : Ast = 
     match c with
     | :? C3Parser.CodeContext as code -> 
         if code.ChildCount <> 1 then raise <| UnknownTypeException code
         match code.children.[0] with
-        | :? C3Parser.DefinesContext as define -> check_define define
+        | :? C3Parser.DefinesContext as define -> upcast check_define define
+        // todo
         | unknow -> raise <| UnknownTypeException unknow
     | _ -> raise <| UnknownTypeException c
 
-let standardized_ast (root: C3Parser.RootContext) = 
-    root.children |> Seq.collect check_code
+let standardized_ast (root: C3Parser.RootContext) : Root = 
+    {raw = root; child = (root.children |> Seq.map check_code)}  

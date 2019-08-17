@@ -4,15 +4,15 @@ open System
 open Xunit
 
 open MeowType.Chaoite
-open MeowType.Chaoite.Chaoite
+open MeowType.Chaoite.Standardization
 
 [<Fact>]
 let Base () =
     let code = "int a = 1"
     let parser = Parser(code)
     let tree = parser.getTree ()
-    let ast = standardized_ast tree
-    for i in ast do 
+    let root = standardized_ast tree
+    for i in root.child do 
         let v = i
         Console.WriteLine v
     ()
