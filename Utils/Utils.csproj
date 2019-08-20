@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <AssemblyName>c3c.utils</AssemblyName>
+    <RootNamespace>MeowType.Chaoite.Utils</RootNamespace>
+  </PropertyGroup>
+
+</Project>
