@@ -2,7 +2,6 @@
 
 open MeowType.Chaoite.Ast
 open MeowType.Chaoite.Parser
-open MeowType.Chaoite.Utils
 
 open Antlr4.Runtime
 open Antlr4.Runtime.Tree
@@ -144,9 +143,9 @@ let check_var_tag (tag: C3Parser.VarTagContext) : VarTag =
         elif t.Auto() <> null then VarTag.Auto
         else raise <| UnknownTypeException t
 
-let rec check_var_defines (var: C3Parser.VarDefinesContext) (list: (RawVarDefine option -> RawVarDefine option) System.Collections.Generic.Stack) = 
+let rec check_var_defines (var: C3Parser.VarDefinesContext) list = 
     match var with
-    | null -> ()
+    | null -> list
     | _ -> 
         let tag = check_var_tag <| var.varTag()
         let ``type`` = match var.``type``() with null -> None | t -> check_type t |> Some
@@ -155,18 +154,16 @@ let rec check_var_defines (var: C3Parser.VarDefinesContext) (list: (RawVarDefine
         let fn more = 
             ({raw = var; Type = ``type``; name = name; value = expr; tag = tag; Then = more} : RawVarDefine)
             |> Some
-        list.Push fn
-        check_var_defines (var.varDefines()) list
+        check_var_defines (var.varDefines()) <| fn :: list
 
 let check_var_define (var: C3Parser.VarDefineContext) : RawVarDefine = 
     let tag = check_var_tag <| var.varTag()
     let ``type`` = check_type <| var.``type``()
     let name = check_id <| var.id()
     let expr = match var.expr() with null -> None | expr -> find_expr expr |> check_expr |> Some
-    let list = System.Collections.Generic.Stack()
-    check_var_defines (var.varDefines()) list
+    let list = check_var_defines (var.varDefines()) []
     let fold last now = now last
-    let more = list |> Utils.PopFor |> Seq.fold fold None
+    let more = list |> Seq.fold fold None
     {raw = var; Type = Some ``type``; name = name; value = expr; tag = tag; Then = more} : RawVarDefine
 
 let check_define (d: C3Parser.DefinesContext) : AstDefine =

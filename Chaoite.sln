@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Parser", "Parser\Parser.csp
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Test", "Test\Test.fsproj", "{94916167-EEE0-4947-8386-4A1859B430FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "Utils\Utils.csproj", "{55BD9BA3-0B9C-4D83-B735-5F204653BB69}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +27,6 @@ Global
 		{94916167-EEE0-4947-8386-4A1859B430FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94916167-EEE0-4947-8386-4A1859B430FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94916167-EEE0-4947-8386-4A1859B430FD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{55BD9BA3-0B9C-4D83-B735-5F204653BB69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{55BD9BA3-0B9C-4D83-B735-5F204653BB69}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{55BD9BA3-0B9C-4D83-B735-5F204653BB69}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{55BD9BA3-0B9C-4D83-B735-5F204653BB69}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
