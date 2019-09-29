@@ -2,404 +2,181 @@ grammar C3;
 
 @header  {#pragma warning disable 3021}
 
+// root: code*;
+
+// code: defines | statements | expr;
+
 root: code*;
 
-code: defines | statements | expr;
+code: defines;
 
-defines: structDefine | functionDefine | varDefine;
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-varDefine: varTag? type id (Eq expr)? (
-		Comma varDefines
+defines:
+	define_val
+	| define_mut
+	| define_const;
+
+define_val:
+	'val' define_val_body ','? ';'?;
+define_val_body:
+	id define_block_type? '=' expr (',' define_val_body)?;
+define_mut:
+	'mut' define_mut_body ','? ';'?;
+define_mut_body: (id define_block_type? '=' expr | id type_expr) (
+		',' define_mut_body
 	)?;
-varDefines: varTag? type? id (Eq expr)? (
-		Comma varDefines
-	)?;
 
-varTag: New | Stackalloc | Auto;
+define_const: 'const' define_const_body ','? ';'?;
+define_const_body:
+	id define_block_type? '=' expr (',' define_const_body)?;
 
-functionDefine:
-	Inline? type id functionParamDefine Async? Star? (
-		functionBody
-		| Eq expr
-		| expr
-	);
-functionParamDefine:
-	Parentheses_Open functionParams? Parentheses_Close;
-functionParams: functionParam (Comma functionParams?)*;
-functionParam: type? id | functionTypeOnParam;
+define_block_type: ('(' type_expr ')');
 
-functionBody: CurlyBraces_Open code* CurlyBraces_Close;
-lambda: Inline? functionParamDefine? Async? Star? functionBody;
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-callParams: Parentheses_Open callParam? Parentheses_Close;
-callParam: expr (Comma expr?)*;
+statements: stat_let;
 
-structDefine:
-	Struct id constructorParam? CurlyBraces_Open structBlock CurlyBraces_Close;
-structBlock: (defines | constructorDefine)*;
+stat_let: 'let' expr_infix ';'?;
 
-constructorDefine: id constructorParam functionBody?;
-constructorParam: constructorParams | constructorThisParam;
-constructorParams:
-	Parentheses_Open constructorParamUnit? Parentheses_Close;
-constructorParamUnit:
-	This? functionParam (Comma constructorParamUnit?)*;
-constructorThisParam:
-	ArrowR2L Parentheses_Open functionParams? Parentheses_Close;
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-setVars:
-	setVar
-	| setAdd
-	| setSub
-	| setMul
-	| setDiv
-	| setMod
-	| setPower
-	| setAnd
-	| setOr
-	| setXor
-	| setLShifth
-	| setRShifth
-	| setURShifth;
+type_expr: expr;
 
-setVar: expr Eq expr;
-setAdd: expr EqAdd expr;
-setSub: expr EqSub expr;
-setMul: expr EqMul expr;
-setDiv: expr EqDiv expr;
-setMod: expr EqMod expr;
-setPower: expr EqPower expr;
-setAnd: expr EqAnd expr;
-setOr: expr EqOr expr;
-setXor: expr EqXor expr;
-setLShifth: expr EqLShift expr;
-setRShifth: expr EqRShift expr;
-setURShifth: expr EqURShift expr;
+expr: expr_call;
 
-label: id Colon;
-useLabel: Colon id;
 
-codeBlock: (label | Colon) CurlyBraces_Open code* CurlyBraces_Close;
 
-statements:
-	forInLoop
-	| whileLoop
-	| doWhileLoop
-	| toYield
-	| toReturn
-	| toBreak
-	| toContinue
-	| label
-	| setVars;
+expr_call: expr_call_base | expr_call_optional;
+expr_call_base: expr_dot '(' expr_call_params? ','? ')';
+expr_call_optional: expr_dot '?(' expr_call_params? ','? ')';
+expr_call_params: expr (',' expr_call_params)?;
 
-toContinue: Continue useLabel?;
-toBreak: Break useLabel? expr?;
+expr_dot: expr_dot_base | expr_dot_optional;
+expr_dot_base: expr_base ('.' id)*;
+expr_dot_optional: expr_base ('?.' id)*;
 
-toYield: Yield Star? useLabel? expr;
+expr_infix: 'todo';
 
-toReturn: Return expr?;
+expr_base: type | literals | id | expr_tuple | expr_infix;
 
-forInLoop:
-	label? For Await? Parentheses_Open id (Comma id)? In expr Parentheses_Close functionBody;
+expr_tuple: '@(' expr_tuple_body ','? ')';
+expr_tuple_body: expr (',' expr_tuple_body)?;
 
-iterForExpr:
-	label? For Async? Star Await? Parentheses_Open id (Comma id)? In expr Parentheses_Close
-		functionBody;
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-whileLoop:
-	label? While Parentheses_Open expr Parentheses_Close functionBody;
-doWhileLoop:
-	label? Do functionBody While Parentheses_Open expr Parentheses_Close;
+type: base_types;
+base_types:
+	'Self'
+	| 'any'
+	| 'void'
+	| 'nullptr'
+	| 'null'
+	| 'never'
+	| 'val'
+	| 'bool'
+	| 'num'
+	| 'int'
+	| 'uint'
+	| 'float'
+	| 'string'
+	| 'char'
+	| 'i8'
+	| 'i16'
+	| 'i32'
+	| 'i64'
+	| 'i128'
+	| 'u8'
+	| 'u16'
+	| 'u32'
+	| 'u64'
+	| 'u128'
+	| 'f32'
+	| 'f64'
+	| 'f128';
 
-iterWhileLoop:
-	label? While Async? Star Parentheses_Open expr Parentheses_Close functionBody;
-iterDoWhileLoop:
-	label? Do Async? Star functionBody While Parentheses_Open expr Parentheses_Close;
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ifExpr:
-	If Parentheses_Open expr Parentheses_Close functionBody elifExpr* elseExpr?;
-elifExpr:
-	Elif Parentheses_Open expr Parentheses_Close functionBody elifExpr?;
-elseExpr: Else functionBody;
+id: Id | '``' ~('``')+ '``';
 
-await: Await expr;
-
-block: label? Do Async? Star? functionBody;
-
-null_expr: or_expr (QuestionQuestion null_expr)?;
-
-or_expr: and_expr ( (OrOr | NotOr) and_expr)*;
-and_expr: bOr_expr ( (AndAnd | NotAnd) bOr_expr)*;
-
-bOr_expr: bXor_expr ( Or bXor_expr)*;
-bXor_expr: bAnd_expr ( Xor bAnd_expr)*;
-bAnd_expr: equal_expr ( And equal_expr)*;
-
-equal_expr: relational_expr ((EqEq | NotEq) relational_expr)*;
-
-relational_expr:
-	shift_expr (
-		(Lt | Gt | Le | Ge | NotLt | NotGt | NotLe | NotGe) shift_expr
-		| Is expr
-		| As expr
-		| Has expr
-	)*;
-
-shift_expr:
-	add_expr ((LeftShift | URightShift | RightShift) add_expr)*;
-
-add_expr: mul_expr ((Plus | Minus) mul_expr)*;
-
-mul_expr: unary_expr ((Star | Slash | Mod | Power) unary_expr)*;
-
-unary_expr:
-	primary_unary_expr
-	| Exclamation primary_unary_expr
-	| Plus primary_unary_expr
-	| Minus primary_unary_expr
-	| PlusPlus primary_unary_expr
-	| MinusMinus primary_unary_expr
-	| Not primary_unary_expr
-	| And primary_unary_expr
-	| Star primary_unary_expr;
-
-primary_unary_expr: call_expr (PlusPlus | MinusMinus)?;
-
-call_expr:
-	primary_expr (
-		callParams (At functionBody)?
-		| At functionBody
-	)*;
-
-priority_expr: Parentheses_Open expr Parentheses_Close;
-
-typeof: Typeof primary_expr;
-sizeof: Sizeof primary_expr;
-nameof: Nameof primary_expr;
-
-primary_expr:
-	id
-	| ifExpr
-	| iterForExpr
-	| lambda
-	| functionDefine
-	| structDefine
-	| literals
-	| type
-	| await
-	| iterWhileLoop
-	| doWhileLoop
-	| block
-	| priority_expr
-	| typeof
-	| sizeof
-	| nameof
-	| codeBlock;
-
-chain_expr: null_expr (Question? Dot id)?;
-
-expr: chain_expr;
-
-id: Id;
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 literals:
-	This
-	| It
-	| NaN
-	| literInt
-	| literUInt
-	| literFloat
-	| literBool;
+	'self'
+	| 'it'
+	| 'NaN'
+	| liter_char
+	| liter_str
+	| liter_int
+	| liter_uint
+	| liter_float
+	| liter_bool;
 
-literInt: LiterInt literIntSuffix?;
-LiterInt: (Plus | Minus)? Digit (Digit | Underline)*;
-literIntSuffix: IntSuffix | I8 | I16 | I32 | I64 | I128;
+liter_char:
+	'c\'' liter_char_content_s '\''
+	| 'c"' liter_char_content_d '"';
+liter_char_content_s:
+	liter_str_escape
+	| liter_char_char_s;
+liter_char_char_s: ~('\'');
+liter_char_content_d:
+	liter_str_escape
+	| liter_char_char_d;
+liter_char_char_d: ~('"');
 
-literUInt: LiterUInt literUIntSuffix?;
-LiterUInt: Plus? Digit (Digit | Underline)*;
-literUIntSuffix: UIntSuffix | U8 | U16 | U32 | U64 | U128;
+liter_str:
+	'\'' liter_str_content_s* '\''
+	| '"' liter_str_content_d* '"';
+liter_str_content_s:
+	liter_str_temp
+	| liter_str_escape
+	| liter_str_str_s;
+liter_str_str_s: ~('\'')+;
+liter_str_content_d:
+	liter_str_temp
+	| liter_str_escape
+	| liter_str_str_d;
+liter_str_str_d: ~('"')+;
+liter_str_temp: '${' expr? '}';
+liter_str_escape:
+	liter_str_escape_unicode
+	| liter_str_escape_base;
+liter_str_escape_base: '\\' .;
+liter_str_escape_unicode:
+	'\\u{' TheHexDigit TheHexDigit? TheHexDigit? TheHexDigit? TheHexDigit? TheHexDigit? TheHexDigit?
+		TheHexDigit? '}';
 
-literFloat: LiterFloat literFloatSuffix?;
-LiterFloat: (Plus | Minus)? (
-		(Digit (Digit | Underline)* ( Dot (Digit | Underline)*)?)
-		| ( Dot (Digit | Underline)*)
+liter_int: LiterInt LiterIntSuffix?;
+LiterInt: Digit (Digit | '_')*;
+LiterIntSuffix: 'i' | 'i8' | 'i16' | 'i32' | 'i64' | 'i128';
+
+liter_uint: LiterUInt LiterUIntSuffix?;
+LiterUInt: Digit (Digit | '_')*;
+LiterUIntSuffix: 'u' | 'u8' | 'u16' | 'u32' | 'u64' | 'u128';
+
+liter_float: LiterFloat LiterFloatSuffix?;
+LiterFloat: (
+		(Digit (Digit | '_')* ( '.' (Digit | '_')*)?)
+		| ( '.' (Digit | '_')*)
 	);
-literFloatSuffix: FloatSuffix | F32 | F64 | F128;
+LiterFloatSuffix: 'f' | 'd' | 'f32' | 'f64' | 'f128';
 
-literBool: True | False;
-True: 'true';
-False: 'false';
+liter_bool: 'true' | 'false';
 
-functionTypeOnParam:
-	Inline? type id functionParamDefine typeSuffix?;
-type:
-	Inline type ArrowR2L functionParamDefine typeSuffix?
-	| type ArrowR2L functionParamDefine typeSuffix?
-	| id typeSuffix?
-	| baseTypes typeSuffix?;
-typeSuffix: Exclamation | Question | Star;
-baseTypes:
-	Any
-	| Void
-	| Null
-	| Never
-	| Var
-	| Bool
-	| Num
-	| Int
-	| UInt
-	| Float
-	| String
-	| Char
-	| I8
-	| I16
-	| I32
-	| I64
-	| I128
-	| U8
-	| U16
-	| U32
-	| U64
-	| U128
-	| F32
-	| F64
-	| F128;
-
-Any: 'any';
-Void: 'void';
-Null: 'null';
-Never: 'never';
-Var: 'var';
-Bool: 'bool';
-Num: 'num';
-Int: 'int';
-UInt: 'uint';
-Float: 'float';
-String: 'string';
-Char: 'char';
-I8: 'i8';
-I16: 'i16';
-I32: 'i32';
-I64: 'i64';
-I128: 'i128';
-U8: 'u8';
-U16: 'u16';
-U32: 'u32';
-U64: 'u64';
-U128: 'u128';
-F32: 'f32';
-F64: 'f64';
-F128: 'f128';
-
-NaN: 'NaN';
-
-IntSuffix: 'i';
-UIntSuffix: 'u';
-FloatSuffix: 'f' | 'd';
-
-Eq: '=';
-Gt: '>';
-Lt: '<';
-Ge: '>=';
-Le: '<=';
-NotGt: '!>';
-NotLt: '!<';
-NotGe: '!>=';
-NotLe: '!<=';
-Exclamation: '!';
-Question: '?';
-QuestionQuestion: '??';
-Star: '*';
-Underline: '_';
-Minus: '-';
-Plus: '+';
-Dot: '.';
-At: '@';
-Comma: ',';
-ArrowR2L: '<-';
-Slash: '/';
-Semicolon: ';' -> skip;
-Colon: ':';
-PlusPlus: '++';
-MinusMinus: '--';
-EqEq: '==';
-EqAdd: '+=';
-EqSub: '-=';
-EqMul: '*=';
-EqDiv: '/=';
-EqMod: '%=';
-EqPower: '**=';
-EqLShift: '<<=';
-EqRShift: '>>=';
-EqURShift: '>>>=';
-EqAnd: '&=';
-EqOr: '|=';
-EqXor: '^=';
-NotEq: '!=';
-Or: '|';
-OrOr: '||';
-NotOr: '!|';
-And: '&';
-AndAnd: '&&';
-NotAnd: '!&';
-Power: '**';
-Not: '~';
-Xor: '^';
-XorXor: '^^';
-NotXor: '!^';
-LeftShift: '<<';
-RightShift: '>>';
-URightShift: '>>>';
-Mod: '%';
-
-Parentheses_Open: '(';
-Parentheses_Close: ')';
-CurlyBraces_Open: '{';
-CurlyBraces_Close: '}';
-Bracket_Open: '[';
-Bracket_Close: ']';
-
-Inline: 'inline';
-It: 'it';
-This: 'this';
-If: 'if';
-Else: 'else';
-For: 'for';
-Elif: 'elif';
-In: 'in';
-While: 'while';
-Yield: 'yield';
-Async: 'async';
-Await: 'await';
-Continue: 'continue';
-Break: 'break';
-Return: 'return';
-Do: 'do';
-From: 'from';
-To: 'to';
-With: 'with';
-Struct: 'struct';
-Is: 'is';
-As: 'as';
-Has: 'Has';
-New: 'new';
-Stackalloc: 'stackalloc';
-Auto: 'auto';
-Typeof: 'typeof';
-Sizeof: 'sizeof';
-Nameof: 'nameof';
-Default: 'default';
-Checked: 'checked';
-Unchecked: 'unchecked';
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Whitespace: [ \t]+ -> skip;
 Newline: ( '\r' '\n'? | '\n') -> skip;
 BlockComment: '/*' (BlockComment | .)*? '*/' -> skip;
 LineComment: '//' ~[\r\n]* -> skip;
 
-Id: At? IdentifierStartCharacter IdentifierPartCharacter*;
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fragment IdentifierStartCharacter: LetterCharacter | Underline;
+Id: IdentifierStartCharacter IdentifierPartCharacter*;
+
+TheHexDigit: HexDigit;
+
+fragment IdentifierStartCharacter: LetterCharacter | '_';
 
 fragment IdentifierPartCharacter:
 	LetterCharacter
